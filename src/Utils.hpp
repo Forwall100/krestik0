@@ -1,30 +1,8 @@
 #pragma once
-#include "Field.hpp"
-#include "Circle.hpp"
-#include "Line.hpp"
-#include "Cross.hpp"
+#include <array>
+#include <memory>
 #include <SFML/Graphics.hpp>
-
-
-std::vector<sf::Drawable*> objects;
-
-void DrawObjects(sf::RenderWindow &window){
-    for(auto obj : objects){
-        window.draw((*obj));
-    }
-}
-
-Cross* CreateCross(sf::Vector2f coord, sf::Color color, float thickness, float diagonal){
-    return new Cross(coord, color, thickness, diagonal);
-}
-
-Circle* CreateCircle(float rad, sf::Color color, sf::Color bg, float thickness, sf::Vector2f coord){
-    return new Circle(rad, color, bg, thickness, coord);
-}
-
-Line* CreateLine(float length, float thickness, float rotation, sf::Vector2f coord, sf::Color color){
-    return new Line(length, thickness, rotation, coord, color);
-}
+#include "Line.hpp"
 
 enum CONTENT{
     CIRCLE,
@@ -32,24 +10,10 @@ enum CONTENT{
     EMPTY
 };
 
-Line* WinCondition(std::vector<std::vector<CONTENT>> &free, CONTENT type){
-    for(int x = 0; x < 3; x++){
-        if(free[x][0] == type && free[x][1] == type && free[x][2] == type){
-            return CreateLine(300, 3, 90, sf::Vector2f(50 + 100 * x, 0), sf::Color::Black);
-        }
-        if(free[0][x] == type && free[1][x]== type && free[2][x] == type){
-            return CreateLine(300, 3, 0, sf::Vector2f(0, 50 + 100 * x), sf::Color::Black);
-        }
-    }
+using Board = std::array<std::array<CONTENT, 3>, 3>;
 
-    if(free[0][0] == type && free[1][1] == type && free[2][2] == type){
-        return CreateLine(450, 3, 45, sf::Vector2f(0, 0), sf::Color::Black);
-    }
+// All cells EMPTY. Never rely on zero-initialization: CIRCLE is 0.
+Board EmptyBoard();
 
-    if(free[0][2] == type && free[1][1] == type && free[2][0] == type){
-        return CreateLine(450, 3, -45, sf::Vector2f(0, 300), sf::Color::Black);
-    }
-
-    return NULL;
-
-}
+// Returns the winning line, or nullptr when `type` has no three in a row.
+std::unique_ptr<Line> WinLine(const Board &board, CONTENT type);
